@@ -3,29 +3,29 @@
 #include "pitches.h"
 
 const int rs = 12, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 2;
-const int startbutton = 6;
-const int stopbutton = 10;
-const int speaker = 8;
+const int startButtonPin = 6;
+const int stopButtonPin = 10;
+const int speakerPin = 8;
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
-Servo myservo;
+Servo teaServo;
 
 int sensorPin = A0;
 int sensorValue = 0;
-int valstartbutton = 0;
+int valStartButton = 0;
 int sekunden = 0;
-int valstopbutton = 0;
+int valStopButton = 0;
 
-int potizusec (int value){
+int potiToSec (int value){
   float ergebnis = value;
   ergebnis = ergebnis / 1023 * 900;
   value = ergebnis;
   return value;
 }
 
-int seczumin (int value){
+int secToMin (int value){
   return value / 60;
 }
-int seczusec (int value){
+int secToSecRemainder (int value){
   return value % 60;
 }
 
@@ -68,17 +68,17 @@ void playZelda2() {
 void playSounds(int melody[],int noteDurations[], int count) {
   for (int thisNote = 0; thisNote < count; thisNote++) {
     int noteDuration = 1000 / noteDurations[thisNote];
-    tone(speaker, melody[thisNote], noteDuration);
+    tone(speakerPin, melody[thisNote], noteDuration);
     int pauseBetweenNotes = noteDuration * 1.30;
     delay(pauseBetweenNotes);
     // stop the tone playing:
-    noTone(speaker);
+    noTone(speakerPin);
   }
 }
 void playSingleSound(int Tone, int duration) {
-  tone(speaker, Tone, duration);
+  tone(speakerPin, Tone, duration);
   delay(duration * 1.30);
-  noTone(speaker);
+  noTone(speakerPin);
 }
 
 
@@ -89,69 +89,69 @@ void setup() {
   //delay(3000);
   playWindows();
   lcd.clear();  
-  pinMode(startbutton, INPUT_PULLUP);
-  myservo.attach(9);
-  myservo.write(62);
-  pinMode(stopbutton, INPUT_PULLUP);
+  pinMode(startButtonPin, INPUT_PULLUP);
+  teaServo.attach(9);
+  teaServo.write(62);
+  pinMode(stopButtonPin, INPUT_PULLUP);
 }
 
 void loop() {
   lcd.setCursor(0, 0);
   lcd.print("Ziehzeit:");
-  valstartbutton = digitalRead(startbutton);
-  while(valstartbutton == HIGH){
+  valStartButton = digitalRead(startButtonPin);
+  while(valStartButton == HIGH){
     lcd.setCursor(0,1);
     lcd.print("                ");
     lcd.setCursor(0,1);
     sensorValue = analogRead(sensorPin);
-    sekunden = potizusec(sensorValue);
+    sekunden = potiToSec(sensorValue);
     lcd.print("min: ");
-    lcd.print(seczumin(sekunden));
+    lcd.print(secToMin(sekunden));
     lcd.print(" sec: ");
-    lcd.print(seczusec(sekunden));
+    lcd.print(secToSecRemainder(sekunden));
     delay(250);
-    valstartbutton = digitalRead(startbutton);
+    valStartButton = digitalRead(startButtonPin);
   }
 
   playSingleSound (NOTE_C3, 250);
   playSingleSound (NOTE_G3, 250);
   playSingleSound (NOTE_C4, 250);
-  myservo.write(2);
+  teaServo.write(2);
   delay(15);
-  valstopbutton = digitalRead(stopbutton);
+  valStopButton = digitalRead(stopButtonPin);
   int counter = 0;
-  while(sekunden > 0 and valstopbutton == HIGH){
+  while(sekunden > 0 and valStopButton == HIGH){
     if (counter < 3) {
       counter = counter + 1;
-      valstopbutton = digitalRead(stopbutton);
+      valStopButton = digitalRead(stopButtonPin);
       delay(250);
     }
     else {
       counter = 0;
       sekunden = sekunden - 1;
-      valstopbutton = digitalRead(stopbutton);
+      valStopButton = digitalRead(stopButtonPin);
       lcd.setCursor(0,1);
       lcd.print("                ");    
       lcd.setCursor(0,1);
       lcd.print("min: ");
-      lcd.print(seczumin(sekunden));
+      lcd.print(secToMin(sekunden));
       lcd.print(" sec: ");
-      lcd.print(seczusec(sekunden));
+      lcd.print(secToSecRemainder(sekunden));
       delay(250);
     }
   }
-  if (valstopbutton == LOW){
+  if (valStopButton == LOW){
     lcd.clear();
     lcd.setCursor(0,0);
     lcd.print("Abbruch");
     playSingleSound (NOTE_G3, 250);
     playSingleSound (NOTE_C3, 250);
     lcd.clear();
-    myservo.write(62);
+    teaServo.write(62);
   }
   else {
    playZelda1();
-   myservo.write(62);
+   teaServo.write(62);
    lcd.clear();
    lcd.setCursor(0,0);
    lcd.print("Tee ist fertig!");
