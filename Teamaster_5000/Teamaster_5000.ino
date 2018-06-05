@@ -6,14 +6,10 @@ const int rs = 12, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 2;
 const int startButtonPin = 6;
 const int stopButtonPin = 10;
 const int speakerPin = 8;
+const int sensorPin = A0;
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 Servo teaServo;
 
-int sensorPin = A0;
-int sensorValue = 0;
-int valStartButton = 0;
-int sekunden = 0;
-int valStopButton = 0;
 
 int potiToSec (int value){
   float ergebnis = value;
@@ -83,10 +79,9 @@ void playSingleSound(int Tone, int duration) {
 
 
 void setup() {
-  // put your setup code here, to run once:
+  createCustomChars();
   lcd.begin(16, 2);
   lcd.print("Teamaster 5000");
-  //delay(3000);
   playWindows();
   lcd.clear();  
   pinMode(startButtonPin, INPUT_PULLUP);
@@ -96,6 +91,11 @@ void setup() {
 }
 
 void loop() {
+  int selectedSeconds = 0;
+  int sensorValue = 0;
+  int valStartButton = 0;
+  int valStopButton = 0;
+  int seconds = 0;
   lcd.setCursor(0, 0);
   lcd.print("Ziehzeit:");
   valStartButton = digitalRead(startButtonPin);
@@ -104,15 +104,18 @@ void loop() {
     lcd.print("                ");
     lcd.setCursor(0,1);
     sensorValue = analogRead(sensorPin);
-    sekunden = potiToSec(sensorValue);
+    seconds = potiToSec(sensorValue);
     lcd.print("min: ");
-    lcd.print(secToMin(sekunden));
+    lcd.print(secToMin(seconds));
     lcd.print(" sec: ");
-    lcd.print(secToSecRemainder(sekunden));
+    lcd.print(secToSecRemainder(seconds));
     delay(250);
     valStartButton = digitalRead(startButtonPin);
   }
-
+  selectedSeconds = seconds;
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.write("Bereit");
   playSingleSound (NOTE_C3, 250);
   playSingleSound (NOTE_G3, 250);
   playSingleSound (NOTE_C4, 250);
@@ -120,7 +123,18 @@ void loop() {
   delay(15);
   valStopButton = digitalRead(stopButtonPin);
   int counter = 0;
-  while(sekunden > 0 and valStopButton == HIGH){
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print("Restzeit: ");
+  lcd.print(secToMin(seconds));
+  lcd.print(":");
+  lcd.print(secToSecRemainder(seconds));
+  lcd.setCursor(0,1);
+  writeProgressbar(getPercentage(selectedSeconds,seconds));
+  lcd.setCursor(12,1);
+  lcd.print(getPercentage(selectedSeconds,seconds));
+  lcd.print("%");
+  while(seconds > 0 and valStopButton == HIGH){
     if (counter < 3) {
       counter = counter + 1;
       valStopButton = digitalRead(stopButtonPin);
@@ -128,15 +142,20 @@ void loop() {
     }
     else {
       counter = 0;
-      sekunden = sekunden - 1;
+      seconds = seconds - 1;
       valStopButton = digitalRead(stopButtonPin);
+      //lcd.setCursor(0,1);
+      lcd.clear();   
+      lcd.setCursor(0,0);
+      lcd.print("Restzeit: ");
+      lcd.print(secToMin(seconds));
+      lcd.print(":");
+      lcd.print(secToSecRemainder(seconds));
       lcd.setCursor(0,1);
-      lcd.print("                ");    
-      lcd.setCursor(0,1);
-      lcd.print("min: ");
-      lcd.print(secToMin(sekunden));
-      lcd.print(" sec: ");
-      lcd.print(secToSecRemainder(sekunden));
+      writeProgressbar(getPercentage(selectedSeconds,seconds));
+      lcd.setCursor(12,1);
+      lcd.print(getPercentage(selectedSeconds,seconds));
+      lcd.print("%");
       delay(250);
     }
   }
@@ -161,6 +180,81 @@ void loop() {
    lcd.setCursor(0,0); 
   }    
 }
-  
 
+void createCustomChars() {
+  byte progressbar0[8] = {
+  B00000,
+  B00000,
+  B00000,
+  B00000,
+  B00000,
+  B00000,
+  B00000,
+  };
+  byte progressbar1[8] = {
+  B10000,
+  B10000,
+  B10000,
+  B10000,
+  B10000,
+  B10000,
+  B10000,
+  };
+  byte progressbar2[8] = {
+  B11000,
+  B11000,
+  B11000,
+  B11000,
+  B11000,
+  B11000,
+  B11000,
+  };
+  byte progressbar3[8] = {
+  B11100,
+  B11100,
+  B11100,
+  B11100,
+  B11100,
+  B11100,
+  B11100,
+  };
+  byte progressbar4[8] = {
+  B11110,
+  B11110,
+  B11110,
+  B11110,
+  B11110,
+  B11110,
+  B11110,
+  };
+  byte progressbar5[8] = {
+  B11111,
+  B11111,
+  B11111,
+  B11111,
+  B11111,
+  B11111,
+  B11111,
+  };
+  lcd.createChar(0, progressbar0);
+  lcd.createChar(1, progressbar1);
+  lcd.createChar(2, progressbar2);
+  lcd.createChar(3, progressbar3);
+  lcd.createChar(4, progressbar4);
+  lcd.createChar(5, progressbar5);
+}
+
+int getPercentage(int maximum, int current) {
+  float fCurrent = current;
+  float fMaximum = maximum;
+  return 100 - ((fCurrent / fMaximum) * 100);
+}
+void writeProgressbar(int percentage) {
+  int filledChars = percentage / 10;
+  int remainder = (percentage % 10) / 2;
+  for (int i=0; i < filledChars; i++) {
+    lcd.write(byte(5));
+  }
+  lcd.write(byte(remainder)); 
+}
 
