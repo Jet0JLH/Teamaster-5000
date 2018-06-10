@@ -108,6 +108,9 @@ void loop() {
     lcd.print("min: ");
     lcd.print(secToMin(seconds));
     lcd.print(" sec: ");
+    if (secToSecRemainder(seconds) < 10) {
+      lcd.print("0");
+    }
     lcd.print(secToSecRemainder(seconds));
     delay(250);
     valStartButton = digitalRead(startButtonPin);
