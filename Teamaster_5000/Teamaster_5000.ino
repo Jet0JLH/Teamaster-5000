@@ -150,6 +150,9 @@ void loop() {
       lcd.print("Restzeit: ");
       lcd.print(secToMin(seconds));
       lcd.print(":");
+      if (sectoSecRemainder(seconds) < 10) {
+        lcd.print("0");
+      }
       lcd.print(secToSecRemainder(seconds));
       lcd.setCursor(0,1);
       writeProgressbar(getPercentage(selectedSeconds,seconds));
