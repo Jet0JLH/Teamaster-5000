@@ -10,6 +10,8 @@ const int sensorPin = A0;
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 Servo teaServo;
 
+int max_Winkel=2;
+int min_Winkel=57; 
 
 int potiToSec (int value){
   float ergebnis = value;
@@ -86,7 +88,7 @@ void setup() {
   lcd.clear();  
   pinMode(startButtonPin, INPUT_PULLUP);
   teaServo.attach(9);
-  teaServo.write(62);
+  teaServo.write(min_Winkel);
   pinMode(stopButtonPin, INPUT_PULLUP);
 }
 
@@ -122,8 +124,10 @@ void loop() {
   playSingleSound (NOTE_C3, 250);
   playSingleSound (NOTE_G3, 250);
   playSingleSound (NOTE_C4, 250);
-  teaServo.write(2);
-  delay(15);
+      for (int p = min_Winkel; p >=max_Winkel; p--){
+      teaServo.write(p);
+      delay(20);
+      }
   valStopButton = digitalRead(stopButtonPin);
   int counter = 0;
   lcd.clear();
@@ -175,11 +179,18 @@ void loop() {
     playSingleSound (NOTE_G3, 250);
     playSingleSound (NOTE_C3, 250);
     lcd.clear();
-    teaServo.write(62);
+   for (int p = max_Winkel; p <=min_Winkel; p++){
+    teaServo.write(p);
+    delay(20);
+   }
   }
   else {
-   playZelda1();
-   teaServo.write(62);
+     lcd.clear();
+     playZelda1();
+   for (int p = max_Winkel; p <=min_Winkel; p++){
+    teaServo.write(p);
+    delay(20);
+   }
    lcd.clear();
    lcd.setCursor(0,0);
    lcd.print("Tee ist fertig!");
@@ -266,4 +277,3 @@ void writeProgressbar(int percentage) {
   }
   lcd.write(byte(remainder)); 
 }
-
